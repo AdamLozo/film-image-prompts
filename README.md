@@ -3,13 +3,14 @@
 A Claude skill that writes, reviews, and fixes prompts for AI image and video models:
 
 - **Midjourney** (stills)
+- **Nano Banana** in the Gemini app (stills and exact edits)
 - **FLUX.2** (stills, with LoRA and img2img)
 - **Wan 2.2** and **LTX-2.5** (image-to-video)
 
 ## What it does
 
 - Selects the visual style from your source (a poem, a scene, a character note). It has no default look. Photorealism and illustration are both supported.
-- Fills one source brief, then writes it for the target model. Midjourney gets a compact prompt with `--no`. FLUX.2 gets long, natural language with the avoids as positive statements.
+- Fills one source brief, then writes it for the target model. Midjourney gets a compact prompt with `--no`. Nano Banana gets full sentences, a stated job for each attached image, and follow-up edit messages. FLUX.2 gets long, natural language with the avoids as positive statements.
 - Applies a shot framework for film work: intent, action, frame, lens, camera, performance, light, continuity.
 - Removes common problems: Stable Diffusion tokens, repeated keywords, contradictions, and "Negative Prompt" sections that Midjourney reads as positive.
 - Gives a step-by-step fallback ladder when Midjourney blocks a prompt.

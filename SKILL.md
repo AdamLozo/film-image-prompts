@@ -1,19 +1,20 @@
 ---
 name: film-image-prompts
-description: Write, review, or fix prompts for Midjourney, FLUX.2, Wan 2.2, or LTX-2.5 stills and shots, including prompts that a model blocked.
+description: Write, review, or fix prompts for Midjourney, Nano Banana (Gemini), FLUX.2, Wan 2.2, or LTX-2.5 stills and shots, including prompts that a model blocked.
 ---
 
 # Film and image prompts
 
 Use this skill to write a new prompt, to review a prompt, or to fix a prompt that a model blocked or rendered badly.
 
-The method has two parts. First, fill one neutral source brief from the user's source. Then write the brief for the target model. The same brief can give a Midjourney prompt and a FLUX.2 prompt.
+The method has two parts. First, fill one neutral source brief from the user's source. Then write the brief for the target model. The same brief can give a Midjourney prompt, a Nano Banana prompt, and a FLUX.2 prompt.
 
 ## Step 1: Identify the target
 
 | Target | Input | The prompt must carry | Form |
 |---|---|---|---|
 | Midjourney (stills) | Text only | Medium, subject, look, parameters | Compact, medium first, `--no` for exclusions |
+| Nano Banana (Gemini app, stills) | Text + attached images | Subject, look, the job of each attached image, aspect ratio in words, avoids in the positive text | Full natural sentences, no parameters |
 | FLUX.2 (stills) | Text, LoRA, optional img2img base | Subject, look, LoRA trigger, avoids in the positive text | Long, descriptive natural language |
 | Wan 2.2 i2v | Start frame + text | Motion only | Short motion prompt |
 | LTX-2.5 i2v | Start frame + text | Motion and performance only | Short motion prompt |
@@ -183,6 +184,46 @@ Fallback ladder when Midjourney blocks the prompt. Do one step at a time:
 
 Scope: Midjourney is strong for one-off images and look exploration. For a character that must stay the same across many shots, a local model with a character LoRA (for example, FLUX.2) gives more control.
 
+### Nano Banana (Gemini app, stills)
+
+Nano Banana is Google's image model in the Gemini app. The user opens the tools menu, selects "Create images", and selects a model: Fast, Thinking, or Pro. Recommend Pro for final images. It gives the most detail.
+
+Structure:
+1. Start with one sentence that gives the medium, the style, and the aspect ratio in words (for example, "A vertical 4:5 hand-painted gouache illustration of …").
+2. Then write the brief in full sentences, in the order of Step 3. Put the ranked elements first.
+3. If images are attached, add one sentence for each image that states its job (see "Attached images").
+
+Rules:
+- Write natural language. Do not use parameters (`--ar`, `--sw`, `--no`, `--s`). Do not use section labels.
+- Nano Banana has no exclusion field. Write the avoids as positive statements ("a clean, empty sky", "plain fabric with no lettering", "the woman wears a high-necked gown"). For text, write "no text, letters, or signatures anywhere in the image" as one closing sentence.
+- Nano Banana renders text well. If the image needs text, put the exact words in quotation marks and give the font style and the position.
+- Nano Banana follows exact geometry (a real building, a layout, a pose) better than Midjourney. Describe the shape precisely when it is important.
+- Keep the camera geometry, the light source, and the palette. These work the same as in the other targets.
+
+Attached images:
+- The user attaches the images to the same message as the prompt. Refer to them by their order: "the first image", "the second image".
+- Give each image one job, and say what not to take from it. Examples: "Use only the painting style, colour palette, and brush texture of the first image. Do not copy its subject or its composition." "Keep the face, hair, and build of the person in the second image."
+- A style reference that shows a person can pull that person into the image. Say "do not copy the person in the first image" when the subject is different.
+- Do not use a photo of a real person as an identity reference unless the user confirms that the person consents.
+
+Edits (this replaces the Midjourney Vary (Region) pass):
+- Write the edit as a follow-up message in the same chat. Nano Banana edits the last image.
+- Make one change for each message. Name the area and the change, then say what stays: "Change only the apple in her hand to a cluster of dark blue Concord grapes. Keep everything else exactly the same: her face, her hand, the light, the colours, and the framing."
+- To remove a mark: "Remove the small mark in the lower-right corner and fill the area with the same floor pattern. Do not change anything else."
+- If an edit changes too much, start the next edit from the previous good image (attach it in a new chat) and repeat the edit with a smaller area.
+- For a new direction, start a new chat. A long edit chain drifts.
+
+Moderation and fallback:
+- Describe adult characters as clearly adult. Remove the trigger words and the intimacy cues in the Midjourney moderation list.
+- If Gemini refuses, do one step at a time: (1) remove trigger words and intimacy cues, (2) remove the identity reference or the real-person photo, (3) make the medium more clearly an illustration. On a photorealistic target, ask the user before step 3.
+
+Record keeping:
+- Gemini puts an invisible SynthID mark and a visible mark on each image. Do not remove the visible Gemini mark. It is a provenance label, not an artist's signature.
+- Gemini file names do not contain the prompt words. Tell the user to rename each saved image, for example `nb_YYYY-MM-DD_title.png`, so that your prompt log can match the file to its prompt.
+- In your prompt log, record the model (Fast, Thinking, or Pro), the attached images and their jobs, and each follow-up edit message in order.
+
+Scope: use Nano Banana for one-off images, for images that need exact geometry or readable text, and for exact edits. In a film pipeline, it is acceptable for location plates and text-in-frame shots. Do not use it for hero characters that need a trained LoRA, or for a film that must use local tools only.
+
 ### FLUX.2 (stills)
 
 - Write long, descriptive natural language. FLUX.2 handles long prompts well. Write the brief in full sentences, in the order of Step 3, with no section labels.
@@ -230,11 +271,13 @@ Check each item:
 - The start and end states agree with the shots before and after (video).
 - For i2v: the prompt does not describe the start frame again.
 - For Midjourney: medium first, compact, `--no` used, no trigger words, no section labels.
+- For Nano Banana: full sentences, no parameters, the aspect ratio in words, each attached image has one stated job, the avoids are in the positive text, and an edit names what stays the same.
 - For FLUX.2: long natural language, LoRA trigger present if a LoRA is used, the avoids are in the positive text.
 
 ## Output format
 
 - Give the prompt in one code block, ready to paste.
 - If the user asks for more than one target, give one code block for each target, each with a label.
+- For Nano Banana, put one line above the code block: the model to select (Fast, Thinking, or Pro) and the images to attach, in order.
 - After the code block, give a maximum of three short notes: the selected style and why, what changed, and the next fallback step if the prompt fails.
 - Recommend one prompt for each target. Do not give alternatives unless the user asks.
