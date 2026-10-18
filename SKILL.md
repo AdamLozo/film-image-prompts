@@ -15,6 +15,7 @@ The method has two parts. First, fill one neutral source brief from the user's s
 |---|---|---|---|
 | Midjourney (stills) | Text only | Medium, subject, look, parameters | Compact, medium first, `--no` for exclusions |
 | Nano Banana (Gemini app, stills) | Text + attached images | Subject, look, the job of each attached image, aspect ratio in words, avoids in the positive text | Full natural sentences, no parameters |
+| Nano Banana (Gemini API, scripted) | Text + images in each API call | As Nano Banana, plus the image to edit in every call | Full natural sentences; the model ID is set in the call |
 | FLUX.2 (stills) | Text, LoRA, optional img2img base | Subject, look, LoRA trigger, avoids in the positive text | Long, descriptive natural language |
 | Wan 2.2 i2v | Start frame + text | Motion only | Short motion prompt |
 | LTX-2.5 i2v | Start frame + text | Motion and performance only | Short motion prompt |
@@ -224,6 +225,33 @@ Record keeping:
 
 Scope: use Nano Banana for one-off images, for images that need exact geometry or readable text, and for exact edits. In a film pipeline, it is acceptable for location plates and text-in-frame shots. Do not use it for hero characters that need a trained LoRA, or for a film that must use local tools only.
 
+### Nano Banana by API (scripted calls)
+
+Use this section when a script (for example, Claude Code) calls Nano Banana through the Gemini API, not through the Gemini app.
+
+Model:
+- Select the model by its ID, from the API's own model list. The app names (Fast, Thinking, Pro) are not IDs.
+- Use the Pro image model (an ID that contains `pro-image`) for final images, and a Flash image model for drafts. Prefer an ID that is not a preview.
+- Record the model ID with each image.
+
+Prompt:
+- Write the prompt by the rules of the Nano Banana section: full sentences, no parameters, the avoids in positive words, one change for each edit, and a closing sentence that says what stays the same.
+- Each API call is a new chat with no history. Send the image to edit in every call. For a chain of edits, send the last good image, not the first one.
+- Give the aspect ratio in words. Also set it in the call when the API takes it.
+- Name the plain parts of the object you change ("a plain door with only a dark knob and a keyhole plate"). The model adds fittings and details that the text does not name.
+
+Edits that must match a key of record (a film plate or a set state):
+- The model changes the whole frame, not only the named area. It can shift the light, the colour and the grain everywhere (a mean shift of 9 to 14 levels outside the edit in one test).
+- Align the edit to the key before you use it. The model can change the size or the framing by a few pixels.
+- Match the edit's light and colour to the key, measured on the area outside the edit. Without this step, a seam shows at the edge of the edit.
+- Keep only the edited area: comp it over the key inside a mask, and keep the key's own pixels outside the mask. Check that nothing outside the mask changed.
+
+Safety and cost:
+- Read the API key from an environment variable. Never print it, log it, or write it to a file or a repository.
+- Check the data terms of your billing tier before you send unreleased material.
+- Set a cap on image calls for each run. Log each call: the model ID, the input file, the time and the result.
+- On an API error, stop and record the error. Do not retry in a loop.
+
 ### FLUX.2 (stills)
 
 - Write long, descriptive natural language. FLUX.2 handles long prompts well. Write the brief in full sentences, in the order of Step 3, with no section labels.
@@ -272,6 +300,7 @@ Check each item:
 - For i2v: the prompt does not describe the start frame again.
 - For Midjourney: medium first, compact, `--no` used, no trigger words, no section labels.
 - For Nano Banana: full sentences, no parameters, the aspect ratio in words, each attached image has one stated job, the avoids are in the positive text, and an edit names what stays the same.
+- For Nano Banana by API: the model ID comes from the model list, each call sends its image, and an edit that must match a key is aligned, colour-matched and comped inside a mask.
 - For FLUX.2: long natural language, LoRA trigger present if a LoRA is used, the avoids are in the positive text.
 
 ## Output format
